@@ -16,6 +16,7 @@ def get_size(start_path):
     return total_size
 
 def execute(command):
+    print("Executing:", command)
     process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
     # Poll process for new output until finished
@@ -69,7 +70,7 @@ def main():
     par2_cmd.append('-v')
     par2_cmd.append('-n' + str(par2_volume_count))
     par2_cmd.append(os.path.join(backup_path, folder_name + '.rar.par2'))
-    par2_cmd.append(config['misc']['prefix'] + '/' + folder_name + '.part*.rar')
+    par2_cmd.append(config['misc']['prefix'] + '/backup/' + folder_name + '.part*.rar')
 
     execute(par2_cmd)
 
