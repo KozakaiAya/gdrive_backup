@@ -40,7 +40,7 @@ def main():
     config = configparser.ConfigParser()
     config.read('./config.ini')
 
-    torrent_id = int(sys.argv[1])
+    torrent_id = sys.argv[1]
     folder_name = sys.argv[2]
     full_content_path = os.path.join(config['misc']['prefix'], folder_name)
     backup_path = os.path.join(config['misc']['prefix'], 'backup')
