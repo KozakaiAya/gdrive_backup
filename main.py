@@ -77,11 +77,13 @@ def main():
     # rclone upload
     raw_folder_cmd = [config['toolchain']['rclone'], 'copy', full_content_path]
     raw_folder_cmd.append(config['rclone']['raw_account'] + ':/' + torrent_id + '/' + folder_name)
+    raw_folder_cmd += ['-v', '--transfers', '12']
     
     execute(raw_folder_cmd)
 
     backup_cmd = [config['toolchain']['rclone'], 'copy', backup_path]
     backup_cmd.append(config['rclone']['compress_account'] + ':/' + torrent_id + '/backup')
+    backup_cmd += ['-v', '--transfers', '12']
 
     execute(backup_cmd)
 
