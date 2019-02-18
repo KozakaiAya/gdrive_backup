@@ -62,10 +62,14 @@ def main():
     elif bs_input[-1] == 'k':
         block_size = int(bs_input[-1]) * 1024
 
-    redundency = input('Please input redundency percentage: ')
+    redundancy = input('Please input redundency percentage: ')
     memory = input('Please input memory limit, in megabytes: ')
     
-    config['par2'] = {'block': block_size, 'redundency': redundency, 'memory': memory}
+    config['par2'] = {'block': block_size, 'redundancy': redundancy, 'memory': memory}
+
+    # Get misc config
+    prefix = input("Please input your torrent download directory: ")
+    config['misc'] = {'prefix': prefix}
 
     with open('./config.ini', 'w') as f:
         config.write(f)
