@@ -88,8 +88,8 @@ def main():
     execute(backup_cmd)
 
     full_path_size = get_size(full_content_path) / 1024.0 / 1024 / 1024
-    backup_path = get_size(backup_path) / 1024.0 / 1024 / 1024
-    max_size = max(full_path_size, backup_path)
+    backup_size = get_size(backup_path) / 1024.0 / 1024 / 1024
+    max_size = max(full_path_size, backup_size)
     print("Quota usage:", max_size, 'GB')
 
     shutil.rmtree(backup_path)
