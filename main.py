@@ -20,7 +20,7 @@ def execute(command):
 
     # Poll process for new output until finished
     while True:
-        nextline = process.stdout.readline()
+        nextline = process.stdout.readline().decode(sys.stdout.encoding)
         if nextline == '' and process.poll() is not None:
             break
         sys.stdout.write(nextline)
@@ -57,8 +57,8 @@ def main():
 
     # par2 verify
     rar_volume_size = get_size(backup_path)
-    block_count = math.ceil(float(rar_volume_size) / config['par2']['block'])
-    backup_block_count = math.ceil(block_count * config['par2']['redundancy'] / 100.0)
+    block_count = math.ceil(float(rar_volume_size) / int(config['par2']['block']))
+    backup_block_count = math.ceil(block_count * int(config['par2']['redundancy']) / 100.0)
     par2_volume_count = math.ceil(backup_block_count / 3.0)
 
     par2_cmd = [config['toolchain']['par2'], 'c']
