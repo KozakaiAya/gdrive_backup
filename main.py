@@ -17,7 +17,7 @@ def get_size(start_path):
 
 def execute(command):
     print("Executing:", command)
-    process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
     # Poll process for new output until finished
     while True:
