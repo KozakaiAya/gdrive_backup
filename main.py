@@ -81,7 +81,7 @@ def main():
     execute(raw_folder_cmd)
 
     backup_cmd = [config['toolchain']['rclone'], 'copy', backup_path]
-    backup_cmd.append(config['rclone']['raw_account'] + ':/' + torrent_id + '/backup')
+    backup_cmd.append(config['rclone']['compress_account'] + ':/' + torrent_id + '/backup')
 
     execute(backup_cmd)
 
