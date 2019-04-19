@@ -15,9 +15,9 @@ def get_size(start_path):
             total_size += os.path.getsize(fp)
     return total_size
 
-def execute(command):
+def execute(command, working_dir=None):
     print("Executing:", command)
-    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=working_dir)
 
     # Poll process for new output until finished
     while True:
@@ -42,22 +42,25 @@ def main():
 
     torrent_id = sys.argv[1]
     folder_name = sys.argv[2]
-    full_content_path = os.path.join(config['misc']['prefix'], folder_name)
-    backup_path = os.path.join(config['misc']['prefix'], 'backup')
+    base_working_dir = config['misc']['prefix']
+    rel_content_path = os.path.join('./', folder_name)
+    abs_content_path = os.path.join(base_working_dir, folder_name)
+    rel_backup_path = os.path.join('./', 'backup')
+    abs_backup_path = os.path.join(base_working_dir, 'backup')
 
     # Compress folder
-    os.makedirs(backup_path, exist_ok=True)
+    os.makedirs(abs_backup_path, exist_ok=True)
     rar_cmd = [config['toolchain']['rar'], 'a']
     rar_cmd.append('-v' + config['rar']['split']) # Splitted volume
     rar_cmd += ['-m1', '-ma5', '-md128m', '-s']
     rar_cmd.append('-rr' + config['rar']['rr']) # Recovery record percentage
-    rar_cmd.append(os.path.join(backup_path, folder_name + '.rar')) # RAR file path
-    rar_cmd.append(full_content_path)
+    rar_cmd.append(os.path.join(rel_backup_path, folder_name + '.rar')) # RAR file path
+    rar_cmd.append(rel_content_path)
     
-    execute(rar_cmd)
+    execute(rar_cmd, working_dir=base_working_dir)
 
     # par2 verify
-    rar_volume_size = get_size(backup_path)
+    rar_volume_size = get_size(abs_backup_path)
     block_count = math.ceil(float(rar_volume_size) / int(config['par2']['block']))
     backup_block_count = math.ceil(block_count * int(config['par2']['redundancy']) / 100.0)
     par2_volume_count = math.ceil(backup_block_count / 3.0)
@@ -69,30 +72,30 @@ def main():
     par2_cmd.append('-m' + config['par2']['memory']) # memory limit
     par2_cmd.append('-v')
     par2_cmd.append('-n' + str(par2_volume_count))
-    par2_cmd.append(os.path.join(backup_path, folder_name + '.rar.par2'))
-    par2_cmd.append(config['misc']['prefix'] + '/backup/' + folder_name + '.part*.rar')
+    par2_cmd.append(os.path.join('./', folder_name + '.rar.par2'))
+    par2_cmd.append(os.path.join('./', folder_name + '.part*.rar'))
 
-    execute(par2_cmd)
+    execute(par2_cmd, working_dir=abs_backup_path)
 
     # rclone upload
-    raw_folder_cmd = [config['toolchain']['rclone'], 'copy', full_content_path]
+    raw_folder_cmd = [config['toolchain']['rclone'], 'copy', abs_content_path]
     raw_folder_cmd.append(config['rclone']['raw_account'] + ':/' + torrent_id + '/' + folder_name)
     raw_folder_cmd += ['-v', '--transfers', '12']
     
     execute(raw_folder_cmd)
 
-    backup_cmd = [config['toolchain']['rclone'], 'copy', backup_path]
+    backup_cmd = [config['toolchain']['rclone'], 'copy', abs_backup_path]
     backup_cmd.append(config['rclone']['compress_account'] + ':/' + torrent_id + '/backup')
     backup_cmd += ['-v', '--transfers', '12']
 
     execute(backup_cmd)
 
-    full_path_size = get_size(full_content_path) / 1024.0 / 1024 / 1024
-    backup_size = get_size(backup_path) / 1024.0 / 1024 / 1024
+    full_path_size = get_size(abs_content_path) / 1024.0 / 1024 / 1024
+    backup_size = get_size(abs_backup_path) / 1024.0 / 1024 / 1024
     max_size = max(full_path_size, backup_size)
     print("Quota usage:", max_size, 'GB')
 
-    shutil.rmtree(backup_path)
+    shutil.rmtree(abs_backup_path)
 
 if __name__ == "__main__":
     main() 
