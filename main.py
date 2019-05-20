@@ -63,6 +63,9 @@ def main():
     rar_volume_size = get_size(abs_backup_path)
     bs_scale_factor = max(60 * 1024 * 1024 * 1024 / float(rar_volume_size), 1.0) # 1GB/block, 2 backup files with 3 blocks each as reference; therefore, scale the block size to reach this reference
     block_size = int(int(config['par2']['block']) / bs_scale_factor)
+    if block_size % 4 != 0:
+        # Block size must be a multiple of 4
+        block_size += 4 - (block_size % 4)
     block_count = math.ceil(float(rar_volume_size) / block_size)
     backup_block_count = math.ceil(block_count * int(config['par2']['redundancy']) / 100.0)
     par2_volume_count = math.ceil(backup_block_count / 3.0)
