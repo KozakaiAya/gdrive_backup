@@ -58,9 +58,9 @@ def main():
     if bs_input[-1] == 'g':
         block_size = int(bs_input[:-1]) * 1024 * 1024 * 1024
     elif bs_input[-1] == 'm':
-        block_size = int(bs_input[-1]) * 1024 * 1024
+        block_size = int(bs_input[:-1]) * 1024 * 1024
     elif bs_input[-1] == 'k':
-        block_size = int(bs_input[-1]) * 1024
+        block_size = int(bs_input[:-1]) * 1024
 
     redundancy = input('Please input redundency percentage: ')
     memory = input('Please input memory limit, in megabytes: ')
