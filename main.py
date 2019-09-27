@@ -5,33 +5,10 @@ import configparser
 import math
 import shutil
 
+from utils import folder_ops
+from utils import executor
+
 # Usage: python main.py <TorrentID> <Content folder name>
-
-def get_size(start_path):
-    total_size = 0
-    for dirpath, dirnames, filenames in os.walk(start_path):
-        for f in filenames:
-            fp = os.path.join(dirpath, f)
-            total_size += os.path.getsize(fp)
-    return total_size
-
-def execute(command, working_dir=None):
-    print("Executing:", command)
-    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=working_dir)
-
-    # Poll process for new output until finished
-    while True:
-        nextline = process.stdout.readline().decode(sys.stdout.encoding)
-        if nextline == '' and process.poll() is not None:
-            break
-        sys.stdout.write(nextline)
-        sys.stdout.flush()
-
-    output = process.communicate()[0]
-    exitCode = process.returncode
-
-    if (exitCode == 0):
-        return output
 
 def main():
     if not os.path.exists('./config.ini'):
@@ -57,10 +34,10 @@ def main():
     rar_cmd.append(os.path.join(rel_backup_path, folder_name + '.rar')) # RAR file path
     rar_cmd.append(rel_content_path)
     
-    execute(rar_cmd, working_dir=base_working_dir)
+    executor.execute(rar_cmd, working_dir=base_working_dir)
 
     # par2 verify
-    rar_volume_size = get_size(abs_backup_path)
+    rar_volume_size = folder_ops.get_size(abs_backup_path)
     bs_scale_factor = max(60 * 1024 * 1024 * 1024 / float(rar_volume_size), 1.0) # 1GB/block, 2 backup files with 3 blocks each as reference; therefore, scale the block size to reach this reference
     block_size = int(int(config['par2']['block']) / bs_scale_factor)
     if block_size % 4 != 0:
@@ -80,23 +57,23 @@ def main():
     par2_cmd.append(os.path.join('./', folder_name + '.rar.par2'))
     par2_cmd.append(os.path.join('./', folder_name + '.part*.rar'))
 
-    execute(par2_cmd, working_dir=abs_backup_path)
+    executor.execute(par2_cmd, working_dir=abs_backup_path)
 
     # rclone upload
     raw_folder_cmd = [config['toolchain']['rclone'], 'copy', abs_content_path]
     raw_folder_cmd.append(config['rclone']['raw_account'] + ':/' + torrent_id + '/' + folder_name)
     raw_folder_cmd += ['-v', '--transfers', '12', '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36']
     
-    execute(raw_folder_cmd)
+    executor.execute(raw_folder_cmd)
 
     backup_cmd = [config['toolchain']['rclone'], 'copy', abs_backup_path]
     backup_cmd.append(config['rclone']['compress_account'] + ':/' + torrent_id + '/backup')
     backup_cmd += ['-v', '--transfers', '12', '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36']
 
-    execute(backup_cmd)
+    executor.execute(backup_cmd)
 
-    full_path_size = get_size(abs_content_path) / 1024.0 / 1024 / 1024
-    backup_size = get_size(abs_backup_path) / 1024.0 / 1024 / 1024
+    full_path_size = folder_ops.get_size(abs_content_path) / 1024.0 / 1024 / 1024
+    backup_size = folder_ops.get_size(abs_backup_path) / 1024.0 / 1024 / 1024
     max_size = max(full_path_size, backup_size)
     print("Quota usage:", max_size, 'GB')
 
