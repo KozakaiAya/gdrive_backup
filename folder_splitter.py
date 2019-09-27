@@ -20,12 +20,12 @@ for folder_to_split in args.paths:
 
     if os.path.isfile(folder_to_split):
         print("Cannot split a file")
-        sys.exit(0)
+        continue
 
     orig_size_g = orig_size / 1024.0 / 1024 / 1024
     if orig_size_g < threshold_g:
         print("No need to split")
-        sys.exit(0)
+        continue
 
     # Dry-run phase, do the analysis
     split_list = []
@@ -51,7 +51,7 @@ for folder_to_split in args.paths:
                 # This is a file, and it is larger than threshold
                 # It cannot be splitted
                 print("Error, file", cur_work_dir, "is larger than 750G")
-                sys.exit(-1)
+                continue
             else:
                 for d in subdir:
                     folder_queue.put(d)
