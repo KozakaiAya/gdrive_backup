@@ -12,13 +12,14 @@ def get_size(path):
     elif os.path.isfile(path):
         return os.path.getsize(path)
 
-
-def level_walk(some_dir, level=1):
-    some_dir = some_dir.rstrip(os.path.sep)
-    assert os.path.isdir(some_dir)
-    num_sep = some_dir.count(os.path.sep)
-    for root, dirs, files in os.walk(some_dir):
-        yield root, dirs, files
-        num_sep_this = root.count(os.path.sep)
-        if num_sep + level <= num_sep_this:
-            del dirs[:]
+def get_folderlist_by_depth(path, depth):
+    path = os.path.normpath(path)
+    res = []
+    for root, dirs, files in os.walk(path, topdown=True):
+        cur_depth = root[len(os.path.sep):].count(os.path.sep) + 1
+        if cur_depth == depth:
+            res += [os.path.join(root, d) for d in dirs]
+            res += [os.path.join(root, f) for f in files]
+            dirs[:] = [] # Don't recurse any deeper
+    
+    return res
