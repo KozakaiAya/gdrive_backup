@@ -6,12 +6,13 @@ import shutil
 
 from utils import folder_ops
 
-threshold_g = 750
-
 parser = argparse.ArgumentParser()
+parser.add_argument('--threshold', type=int, default=750)
 parser.add_argument('--dry_run', action='store_true')
 parser.add_argument('paths', nargs='+', type=str)
 args = parser.parse_args()
+
+threshold_g = args.threshold
 
 for folder_to_split in args.paths:
     folder_to_split = os.path.abspath(folder_to_split) # Convert to absolute path
