@@ -2,15 +2,28 @@ import shutil
 import os
 import argparse
 
+from utils import folder_ops
+
 parser = argparse.ArgumentParser()
-parser.add_argument('folders', )
+parser.add_argument('--dry_run', action='store_true')
+parser.add_argument('folders', nargs='+', type=str)
+args = parser.parse_args()
 
+for folder in args.folders:
+    folder = os.path.abspath(folder)
+    basename = os.path.basename(folder)
+    if not basename.endswith('_split'):
+        print("Refuse to merge this folder. It is not created by folder_splitter.py")
+    
+    part_list = folder_ops.get_folderlist_by_depth(folder, depth=1)
+    target = folder[:-6]
+    os.makedirs(target)
 
-source = '/path/to/source_folder'
-dest1 = '/path/to/dest_folder'
-
-
-files = os.listdir(source)
-
-for f in files:
-        shutil.move(source+f, dest1)
+    for part in part_list:
+        files = os.listdir(part)
+        for fn in files:
+            src = os.path.join(part, fn)
+            if not args.dry_run:
+                shutil.move(src, target)
+            print("File:", src)
+            print("To:", target)
